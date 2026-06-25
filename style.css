@@ -1,0 +1,104 @@
+/* riffraff — mono, black & white, lines only */
+:root{
+  --bg:#fff; --fg:#000;
+  --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+@media (prefers-color-scheme: dark){ :root{ --bg:#000; --fg:#fff; } }
+
+*{ box-sizing:border-box; }
+html,body{ margin:0; }
+body{
+  background:var(--bg); color:var(--fg);
+  font-family:var(--mono); font-size:13px; line-height:1.4;
+  -webkit-font-smoothing:none; text-rendering:optimizeLegibility;
+}
+#app{ max-width:1100px; margin:0 auto; padding:14px 16px 60px; }
+
+/* generic */
+button, select{
+  font-family:var(--mono); font-size:12px;
+  background:var(--bg); color:var(--fg);
+  border:1px solid var(--fg); padding:2px 7px;
+  cursor:pointer; line-height:1.3;
+}
+button:hover:not(:disabled), select:hover{ background:var(--fg); color:var(--bg); }
+button:disabled{ opacity:.35; cursor:default; }
+button.on, button.primary{ background:var(--fg); color:var(--bg); }
+button.primary{ font-weight:bold; }
+select{ padding:2px 4px; }
+
+input{
+  font-family:var(--mono); font-size:inherit;
+  background:transparent; color:var(--fg);
+  border:0; border-bottom:1px solid transparent; padding:1px 2px; min-width:4ch;
+}
+input:focus{ outline:none; border-bottom:1px dashed var(--fg); }
+input::placeholder{ color:var(--fg); opacity:.4; }
+
+.muted{ opacity:.55; }
+.sep{ display:inline-block; width:0; border-left:1px solid var(--fg); align-self:stretch; margin:0 4px; opacity:.4; }
+.row{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin:6px 0; }
+
+/* top bar */
+.bar{ display:flex; flex-wrap:wrap; gap:6px; align-items:center;
+  border-bottom:1px solid var(--fg); padding-bottom:8px; margin-bottom:8px; }
+.brand{ font-weight:bold; letter-spacing:1px; text-transform:lowercase; }
+.bar .sep{ height:18px; }
+
+/* song meta */
+.song{ display:flex; gap:14px; align-items:baseline; flex-wrap:wrap; margin:8px 0 4px; }
+.song .h1{ font-size:22px; font-weight:bold; min-width:14ch; }
+.song .artist{ font-size:14px; opacity:.8; min-width:10ch; }
+
+/* tracks */
+.trackbar{ border-top:1px solid var(--fg); margin-top:10px; padding-top:8px; }
+.tabs{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+.tabs .tab.on{ background:var(--fg); color:var(--bg); }
+.track-head{ margin:8px 0 2px; font-weight:bold; }
+.trackctl{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; opacity:.9; }
+.trackctl input{ border-bottom:1px solid var(--fg); }
+.trackctl input.tun{ width:5ch; text-align:center; }
+
+/* picker / fretboard */
+.panel{ border:1px solid var(--fg); padding:8px; margin:10px 0; }
+.fbwrap{ overflow-x:auto; margin:4px 0; }
+table.fb{ border-collapse:collapse; }
+table.fb th, table.fb td{ border:1px solid var(--fg); text-align:center; }
+table.fb th{ font-weight:normal; opacity:.6; font-size:10px; padding:1px 0; min-width:2.1em; }
+table.fb th.strlabel{ opacity:1; font-weight:bold; min-width:3.2ch; padding:0 4px; }
+table.fb td{ width:2.1em; height:1.8em; cursor:pointer; font-size:13px; }
+table.fb td.open{ border-right:2px solid var(--fg); }
+table.fb td:hover{ background:var(--fg); color:var(--bg); }
+table.fb td.on{ font-weight:bold; }
+table.fb .dot{ font-size:9px; opacity:.5; }
+
+.chip{ display:inline-flex; align-items:center; gap:3px; border:1px solid var(--fg);
+  padding:0 4px; margin:0; font-size:12px; }
+.chip.active{ background:var(--fg); color:var(--bg); }
+.chip b{ cursor:pointer; font-weight:bold; padding:0 2px; }
+.chip b:hover{ text-decoration:underline; }
+
+/* parts */
+.parts{ margin-top:6px; }
+.part{ border:1px solid var(--fg); padding:8px 10px; margin:10px 0; }
+.part.active{ border-width:2px; }
+.part-head{ font-weight:bold; margin-bottom:4px; }
+.part-head input{ border-bottom:1px solid var(--fg); font-weight:bold; }
+.part-head input.fx{ font-weight:normal; min-width:18ch; }
+pre.tab{ margin:6px 0; padding:8px 10px; border-left:2px solid var(--fg);
+  overflow-x:auto; white-space:pre; font-size:13px; line-height:1.5; }
+.legend{ opacity:.75; font-size:12px; margin:2px 0 4px; }
+.blockchips{ display:flex; flex-wrap:wrap; gap:5px; margin:4px 0; }
+.partctl{ display:flex; gap:6px; margin-top:4px; }
+
+.foot{ margin-top:18px; border-top:1px solid var(--fg); padding-top:6px; font-size:11px; }
+
+/* print: just the tab, nothing interactive */
+@media print{
+  .no-print{ display:none !important; }
+  #app{ max-width:none; padding:0; }
+  .part, .panel{ border:0; padding:0; }
+  pre.tab{ border-left:0; padding:0; }
+  .part{ break-inside:avoid; }
+  body{ font-size:12px; }
+}
