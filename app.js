@@ -24,20 +24,45 @@ const INSTRUMENTS = {
   },
 };
 
-// effects picker, grounded in the studio-brain rig
+// effects picker, grounded in the studio-brain rig.
+// Headrush rigs mirror devices/headrush-flex-prime.md in studio-brain (68 presets).
+// `prefix` is prepended to the value that lands in the part's effects field.
 const EFFECTS = [
-  "DigiTech XP-100 (Whammy/Wah)",
-  "Korn pedal (dist/fuzz)",
-  "Headrush Flex Prime",
-  "Headrush — DRT (dirty)",
-  "Headrush — CLN (clean)",
-  "Chase Bliss Mood MkII",
-  "Chase Bliss Ottobit Jr",
-  "Line 6 DL4 MkII",
-  "Zoom MS-70CDR",
-  "DOD Death Metal",
-  "ZDL: Microloom","ZDL: Flower","ZDL: Shatter","ZDL: Arrakis","ZDL: Corrupt",
-  "ZDL: Klang","ZDL: GenLoss","ZDL: Scorch","ZDL: Howl",
+  { group: "Pedals & outboard", items: [
+    "DigiTech XP-100 (Whammy/Wah)",
+    "Korn pedal (dist/fuzz)",
+    "Chase Bliss Mood MkII",
+    "Chase Bliss Ottobit Jr",
+    "Line 6 DL4 MkII",
+    "Zoom MS-70CDR",
+    "DOD Death Metal",
+  ]},
+  { group: "Headrush rigs — @ (custom)", prefix: "HR ", items: [
+    "BAS HG v1","BAS v1","BAS v2","BAS v3",
+    "CLN Haunted Reverb (equation)",
+    "DRN E-Bow PC5 (black hole)","DRN EBOW FX v2","DRN Swell Grains PC6 (departing saturn)","DRN Tape Chello PC3 (before the noise)",
+    "DRT KP PC8","DRT-CLN PC1 (v3)",
+    "FX Broken Radio (Black Hole)","FX Synth Seq PC7 (Saturn)","FX Tape Splice PC4 (Saturn)",
+    "MEL Cathedral bells (black hole)","MEL Postrev PC2",
+    "RTM KP v1","RTM KP v2","RTM KP v3","RTM KP v4","RTM KP v6",
+    "RTM v3","RTM v4","RTM v5","RTM v6","RTM v7",
+    "RTM-L Mesa v3","RTM-L Mesa v4","RTM-L Mesa v5",
+    "RTM-L v3","RTM-L v4",
+    "RTM-R v2",
+    "Drumbrute",
+  ]},
+  { group: "Headrush [LAB] presets", prefix: "HR LAB ", items: [
+    "80s synth","Acoustic","Amb Dark Drone","Ambient delay seq","Ambient Wall","BAS Darkglasses",
+    "Bubbly bath","Delay-lay-lay","DRN Down-Ambient Swells","DRN Super Saw","Fairy Dust","FX Drift",
+    "FX Electrogoat Bleech","FX Electrolamb Bleech","FX Electrosheep Bleech","FX Hail Nightmare","FX Red Alert",
+    "FX Security Breach","Guitars In Disguise","Md2","MEL Stutter","Organ Synth","phased delay","Prime Synth",
+    "Pure Ambient","SNTH Hologram","SNTH Industrial","SNTH Landing","SNTH Lasers","SNTH Rhythm",
+    "Spaghetti Western","SYNTH Soviet","Synthy thunder","Tap dance","Warm Distant Echoes",
+  ]},
+  { group: "Zoom ZDL customs", items: [
+    "ZDL: Microloom","ZDL: Flower","ZDL: Shatter","ZDL: Arrakis","ZDL: Corrupt",
+    "ZDL: Klang","ZDL: GenLoss","ZDL: Scorch","ZDL: Howl",
+  ]},
 ];
 
 const MAX_FRET = 24;
@@ -292,7 +317,12 @@ function renderPicker(){
   </div>`;
 }
 function effectSelect(p){
-  return `<select data-action="add-effect" data-id="${p.id}"><option value="">+ effect…</option>${EFFECTS.map(e=>`<option>${esc(e)}</option>`).join("")}</select>`;
+  const groups = EFFECTS.map(g =>
+    `<optgroup label="${esc(g.group)}">` +
+    g.items.map(it => `<option value="${esc((g.prefix || "") + it)}">${esc(it)}</option>`).join("") +
+    `</optgroup>`
+  ).join("");
+  return `<select data-action="add-effect" data-id="${p.id}"><option value="">+ effect…</option>${groups}</select>`;
 }
 function renderBlockChips(p){
   if (!p.blocks.length) return `<span class="muted">no blocks yet — build them on the neck above</span>`;
