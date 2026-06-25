@@ -62,14 +62,16 @@ input::placeholder{ color:var(--fg); opacity:.4; }
 /* picker / fretboard */
 .panel{ border:1px solid var(--fg); padding:8px; margin:10px 0; }
 .fbwrap{ overflow-x:auto; margin:4px 0; }
-table.fb{ border-collapse:collapse; }
+table.fb{ border-collapse:collapse; width:100%; table-layout:fixed; min-width:680px; }
 table.fb th, table.fb td{ border:1px solid var(--fg); text-align:center; }
-table.fb th{ font-weight:normal; opacity:.6; font-size:10px; padding:1px 0; min-width:2.1em; }
-table.fb th.strlabel{ opacity:1; font-weight:bold; min-width:3.2ch; padding:0 4px; }
-table.fb td{ width:2.1em; height:1.8em; cursor:pointer; font-size:13px; }
+table.fb th{ font-weight:normal; opacity:.6; font-size:10px; padding:1px 0; }
+table.fb thead th:first-child, table.fb th.strlabel{ width:3.4ch; }
+table.fb th.strlabel{ opacity:1; font-weight:bold; padding:0 4px; }
+table.fb td{ height:1.9em; cursor:pointer; font-size:13px; }
 table.fb td.open{ border-right:2px solid var(--fg); }
 table.fb td:hover{ background:var(--fg); color:var(--bg); }
-table.fb td.on{ font-weight:bold; }
+table.fb td.on{ background:var(--fg); color:var(--bg); font-weight:bold; }       /* the black square */
+table.fb td.on.sel{ outline:2px solid var(--bg); outline-offset:-4px; }          /* highlighted note */
 table.fb .dot{ font-size:9px; opacity:.5; }
 
 .chip{ display:inline-flex; align-items:center; gap:3px; border:1px solid var(--fg);
@@ -77,6 +79,9 @@ table.fb .dot{ font-size:9px; opacity:.5; }
 .chip.active{ background:var(--fg); color:var(--bg); }
 .chip b{ cursor:pointer; font-weight:bold; padding:0 2px; }
 .chip b:hover{ text-decoration:underline; }
+.chip .seqno{ width:2.6ch; text-align:center; padding:0; margin-right:1px;
+  border:0; border-bottom:1px solid currentColor; color:inherit; font-weight:bold; font-size:12px; }
+.chip .seqno:focus{ outline:none; }
 
 /* parts */
 .parts{ margin-top:6px; }

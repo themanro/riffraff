@@ -238,8 +238,9 @@ function renderFretboard(track){
     body += `<tr><th class="strlabel">${esc(track.tuning[si])}</th>`;
     for (let f=0; f<=MAX_FRET; f++){
       const note = ui.picker.notes.find(nt => nt.string===si && nt.fret===f);
-      const mark = note ? (note.id===ui.picker.activeNote ? "◎" : "●") : "";
-      body += `<td class="${f===0?"open":""} ${note?"on":""}" data-action="fret" data-string="${si}" data-fret="${f}">${mark}</td>`;
+      const mark = note ? (ui.picker.mode==="seq" ? String(ui.picker.notes.indexOf(note)+1) : "●") : "";
+      const sel = note && note.id===ui.picker.activeNote ? "sel" : "";
+      body += `<td class="${f===0?"open":""} ${note?"on":""} ${sel}" data-action="fret" data-string="${si}" data-fret="${f}">${mark}</td>`;
     }
     body += `</tr>`;
   }
@@ -247,11 +248,15 @@ function renderFretboard(track){
 }
 function renderChips(track){
   const n = track.tuning.length;
+  const seq = ui.picker.mode === "seq";
   if (!ui.picker.notes.length) return `<span class="muted">click the neck to add notes</span>`;
-  return ui.picker.notes.map(nt => {
+  return ui.picker.notes.map((nt, i) => {
     const dispNum = n - nt.string;                // 1 = highest string
     const tm = nt.tech==="bend"?"b":nt.tech==="harm"?"h":nt.tech==="pm"?"m":"";
-    return `<span class="chip ${nt.id===ui.picker.activeNote?"active":""}" data-action="select-note" data-id="${nt.id}">S${dispNum}:${nt.fret}${tm}<b data-action="del-note" data-id="${nt.id}">×</b></span>`;
+    const active = nt.id===ui.picker.activeNote ? "active" : "";
+    const num = seq ? `<input class="seqno" type="text" inputmode="numeric" data-action="seqno" data-id="${nt.id}" value="${i+1}" title="position — type a number to reorder">` : "";
+    const moves = seq ? `<b data-action="move-note" data-id="${nt.id}" data-dir="-1" title="move earlier">◀</b><b data-action="move-note" data-id="${nt.id}" data-dir="1" title="move later">▶</b>` : "";
+    return `<span class="chip ${active}" data-action="select-note" data-id="${nt.id}">${num}S${dispNum}:${nt.fret}${tm}${moves}<b data-action="del-note" data-id="${nt.id}">×</b></span>`;
   }).join("");
 }
 function renderPicker(){
@@ -321,7 +326,7 @@ function renderParts(){
   </div>`;
 }
 function renderFooter(){
-  return `<div class="foot muted">● note · ◎ selected · chord stacks / sequence spreads · b = bend · &lt;n&gt; = harmonic · PM line = palm mute · numbers under the tab = block (see list) · autosaves to this browser</div>`;
+  return `<div class="foot muted">click a fret to add · click a note to highlight, double-click to remove · in sequence mode the square shows its order # — type a # or use ◀▶ in the chips to reorder · chord stacks / sequence spreads · b = bend · &lt;n&gt; = harmonic · PM line = palm mute · numbers under the tab = block · autosaves to this browser</div>`;
 }
 function render(){
   ensureValid();
@@ -331,18 +336,37 @@ function render(){
 }
 
 /* ---------- picker actions ---------- */
-function toggleFret(stringIdx, fret){
+function pickFret(stringIdx, fret){
   const pk = ui.picker;
-  const i = pk.notes.findIndex(nt => nt.string===stringIdx && nt.fret===fret);
-  if (i >= 0){
-    const removed = pk.notes.splice(i,1)[0];
-    if (pk.activeNote === removed.id) pk.activeNote = pk.notes.length ? pk.notes[pk.notes.length-1].id : null;
-  } else {
-    if (pk.mode === "chord") for (let j=pk.notes.length-1;j>=0;j--) if (pk.notes[j].string===stringIdx) pk.notes.splice(j,1);
-    const note = { id: uid(), string: stringIdx, fret, tech: "none" };
-    pk.notes.push(note); pk.activeNote = note.id;
-  }
+  const existing = pk.notes.find(nt => nt.string===stringIdx && nt.fret===fret);
+  if (existing){ pk.activeNote = existing.id; render(); return; }   // click a note to highlight it
+  if (pk.mode === "chord") for (let j=pk.notes.length-1;j>=0;j--) if (pk.notes[j].string===stringIdx) pk.notes.splice(j,1);
+  const note = { id: uid(), string: stringIdx, fret, tech: "none" };
+  pk.notes.push(note); pk.activeNote = note.id;
   render();
+}
+function removeNote(id){
+  const pk = ui.picker;
+  const i = pk.notes.findIndex(nt => nt.id === id);
+  if (i < 0) return;
+  pk.notes.splice(i,1);
+  if (pk.activeNote === id) pk.activeNote = pk.notes.length ? pk.notes[pk.notes.length-1].id : null;
+}
+function moveNote(id, dir){
+  const pk = ui.picker;
+  const i = pk.notes.findIndex(n => n.id === id), j = i + dir;
+  if (i < 0 || j < 0 || j >= pk.notes.length) return;
+  const [x] = pk.notes.splice(i,1); pk.notes.splice(j,0,x);
+  pk.activeNote = id; render();
+}
+function setSeqNo(id, val){                                          // type a position to reorder
+  const pk = ui.picker;
+  const from = pk.notes.findIndex(n => n.id === id);
+  if (from < 0) return;
+  let to = (parseInt(val,10) || 1) - 1;
+  to = Math.max(0, Math.min(pk.notes.length - 1, to));
+  const [x] = pk.notes.splice(from,1); pk.notes.splice(to,0,x);
+  pk.activeNote = id; render();
 }
 function setTech(tech){
   const n = ui.picker.notes.find(x => x.id === ui.picker.activeNote);
@@ -436,13 +460,10 @@ function onClick(e){
       { const t=currentTrack(); t.parts = t.parts.filter(p => p.id !== id); ui.partId=null; persist(); render(); } break;
     case "move-part": move(currentTrack().parts, id, +el.dataset.dir); persist(); render(); break;
 
-    case "fret": toggleFret(+el.dataset.string, +el.dataset.fret); break;
+    case "fret": pickFret(+el.dataset.string, +el.dataset.fret); break;
     case "select-note": ui.picker.activeNote = id; render(); break;
-    case "del-note": {
-      const pk = ui.picker; const i = pk.notes.findIndex(nt => nt.id === id);
-      if (i>=0){ pk.notes.splice(i,1); if (pk.activeNote===id) pk.activeNote = pk.notes.length?pk.notes[pk.notes.length-1].id:null; }
-      render(); break;
-    }
+    case "move-note": moveNote(id, +el.dataset.dir); break;
+    case "del-note": removeNote(id); render(); break;
     case "clear-notes": ui.picker.notes=[]; ui.picker.activeNote=null; render(); break;
     case "set-mode": ui.picker.mode = el.dataset.mode; render(); break;
     case "set-tech": setTech(el.dataset.tech); break;
@@ -468,6 +489,7 @@ function onChange(e){
     const p = findPart(el.dataset.id); if (p && el.value){ p.effects = p.effects ? p.effects + ", " + el.value : el.value; persist(); render(); }
     return;
   }
+  if (a === "seqno"){ setSeqNo(el.dataset.id, el.value); return; }
   if (el.dataset.bind) applyBind(el.dataset.bind, el.dataset.id, el.value, true);
 }
 function onFile(e){
@@ -477,7 +499,15 @@ function onFile(e){
   r.readAsText(f);
 }
 
+function onDblClick(e){
+  const el = e.target.closest('td[data-action="fret"]');
+  if (!el) return;
+  const note = ui.picker.notes.find(nt => nt.string === +el.dataset.string && nt.fret === +el.dataset.fret);
+  if (note){ removeNote(note.id); render(); }
+}
+
 app.addEventListener("click", onClick);
+app.addEventListener("dblclick", onDblClick);
 app.addEventListener("input", onInput);
 app.addEventListener("change", onChange);
 fileInput.addEventListener("change", onFile);
