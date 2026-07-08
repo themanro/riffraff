@@ -4,6 +4,8 @@ A super-quick tab scratchpad. Click notes on the neck → turn them into blocks 
 assemble blocks into parts → parts into tracks → tracks into a song. No build
 step, no dependencies, no color — just mono text and lines.
 
+This was a good amount of work and tokens, please consider to: [buymeacoffee.com/SZ0KFIXKCt](buymeacoffee.com/SZ0KFIXKCt)
+
 **[Open it →](https://themanro.github.io/riffraff/)**
 
 ## What it does
